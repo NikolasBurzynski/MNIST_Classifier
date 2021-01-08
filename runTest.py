@@ -16,7 +16,7 @@ def main():
     B2 = trained_weights[3].reshape(10,)
 
     # test(W1, B1, W2, B2, test_data, test_labels)
-    myNumTest(W1, B1, W2, B2, "Numbers/5.png", 5)
+    myNumTest(W1, B1, W2, B2, "Numbers/4.png", 4)
 
 def myNumTest(W1, B1, W2, B2, image, label):
     an_image = PIL.Image.open(image)
@@ -28,10 +28,10 @@ def myNumTest(W1, B1, W2, B2, image, label):
     
 
     input_array = grayscale_array.flatten()
+    
+    input_array = input_array / 255
     print(input_array)
-    for i in range(input_array.size):
-        input_array[i] = np.true_divide(input_array[i],255)
-    print(input_array) 
+     
     HL = np.maximum(0, W1.dot(input_array)+B1)
         
     SCORE = W2.dot(HL) + B2
@@ -57,8 +57,7 @@ def test(W1, B1, W2, B2, test_data, test_labels):
         flat_images[i] = images[i].flatten()
         flat_images[i].reshape(784,1)
         flat_images[i] = flat_images[i] / 255
-        print(flat_images[i])
-        exit()
+        
     
 
     for i in range(N):

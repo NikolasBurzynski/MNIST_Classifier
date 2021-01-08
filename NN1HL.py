@@ -10,7 +10,7 @@ def main():
     
 def train(data, labels):
     N = len(data) 
-    EPOCHS = 4
+    EPOCHS = 30
     HL_NODES = 10
     PIXELS = 784
     DIGITS = 10
