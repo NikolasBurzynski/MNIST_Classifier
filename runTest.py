@@ -16,7 +16,7 @@ def main():
     B2 = trained_weights[3].reshape(10,)
 
     # test(W1, B1, W2, B2, test_data, test_labels)
-    myNumTest(W1, B1, W2, B2, "Numbers/7.png", 7)
+    myNumTest(W1, B1, W2, B2, "Numbers/4_2.png", 4)
 
 def myNumTest(W1, B1, W2, B2, image, label):
     an_image = PIL.Image.open(image)
@@ -30,7 +30,7 @@ def myNumTest(W1, B1, W2, B2, image, label):
     input_array = grayscale_array.flatten()
     
     input_array = input_array / 255
-    print(input_array)
+    # print(input_array)
      
     HL = np.maximum(0, W1.dot(input_array)+B1)
         
@@ -43,7 +43,7 @@ def myNumTest(W1, B1, W2, B2, image, label):
     correct_score = norm_score[correct_digit]
 
     pred_digit = np.argmax(norm_score)
-    print(pred_digit)
+    print("Your number is: {}".format(pred_digit))
     plt.show()
 
 

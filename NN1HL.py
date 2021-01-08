@@ -30,13 +30,8 @@ def train(data, labels):
     for j in range(EPOCHS):
         for i in range(N):
             HL = np.maximum(0, W1.dot(flat_images[i])+B1)
-            # print("Size of W1 is {}".format(W1.shape))
-            # print("Size of B1 is {}".format(B1.shape))
-            # print("Size of W2 is {}".format(W2.shape))
-            # print("Size of B2 is {}".format(B2.shape))
-            # print("Size of Flat Image is {}".format(flat_images[i].shape))
-            # print("HL size {}".format(HL.shape))
             SCORE = W2.dot(HL) + B2
+
             #Loss Calculation
             exp_score = np.exp(SCORE)
             norm_score = exp_score / np.sum(exp_score)
@@ -54,6 +49,7 @@ def train(data, labels):
             reg_loss = .5*REG*np.sum(W1*W1) + .5*REG*np.sum(W2*W2)
             total_loss = data_loss + reg_loss
             print("Epoch: {} Current iteration: {} Loss: {} Confidence: {}".format(j+1, i, total_loss, correct_score), end='\r')
+            
             #backPropogation
             dscores = norm_score
             dscores[correct_digit] -= 1
@@ -62,6 +58,7 @@ def train(data, labels):
     
             dB2 = np.sum(dscores, axis = 0, keepdims=True)
             dHL = W2.T.dot(dscores)
+            
             #relu activation backprop
             dHL[HL <= 0] = 0
 
@@ -81,15 +78,6 @@ def train(data, labels):
     file = open("TNN", "wb")
     np.save(file, trained_NN, allow_pickle=True)
     file.close
-
-def findMax(scores):
-    index = 0
-    record = 0  
-    for i, score in enumerate(scores):
-        if score >= record:
-            record = score
-            index = i
-    return index
         
 
 if __name__ == "__main__":
