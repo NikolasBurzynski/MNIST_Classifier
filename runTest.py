@@ -16,7 +16,7 @@ def main():
     B2 = trained_weights[3].reshape(10,)
 
     # test(W1, B1, W2, B2, test_data, test_labels)
-    myNumTest(W1, B1, W2, B2, "Numbers/4.png", 4)
+    myNumTest(W1, B1, W2, B2, "Numbers/7.png", 7)
 
 def myNumTest(W1, B1, W2, B2, image, label):
     an_image = PIL.Image.open(image)
