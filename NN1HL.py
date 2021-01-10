@@ -10,12 +10,12 @@ def main():
     
 def train(data, labels):
     N = len(data) 
-    EPOCHS = 30
+    EPOCHS = 50
     HL_NODES = 10
     PIXELS = 784
     DIGITS = 10
     REG = 1e-3
-    STEP_SIZE = .005
+    STEP_SIZE = .001
     images = np.asarray(data)
     flat_images = np.empty((N,PIXELS))
     for i, image in enumerate(images):
