@@ -1,17 +1,22 @@
 import numpy as np
 import tensorflow as tf
+import time
 from keras.datasets import mnist
 
 def main():
     (train_data, train_labels), (test_data, test_labels) = mnist.load_data()
+    start_time = time.time()
     train(train_data, train_labels)
+    print("--- %s seconds ---" % (time.time() - start_time))
+
 
 
     
 def train(data, labels):
     N = len(data) 
-    EPOCHS = 50
-    HL_NODES = 10
+    EPOCHS = 200
+    BATCH_SIZE = 15
+    HL_NODES = 75
     PIXELS = 784
     DIGITS = 10
     REG = 1e-3
@@ -28,6 +33,10 @@ def train(data, labels):
     B2 = np.zeros(DIGITS)
     correct = 0
     for j in range(EPOCHS):
+        adW1 = np.zeros((HL_NODES,PIXELS))
+        adB1 = np.zeros(HL_NODES)
+        adW2 = np.zeros((DIGITS, HL_NODES))
+        adB2 = np.zeros(DIGITS)
         for i in range(N):
             HL = np.maximum(0, W1.dot(flat_images[i])+B1)
             SCORE = W2.dot(HL) + B2
@@ -67,11 +76,30 @@ def train(data, labels):
 
             dW2 += REG * W2
             dW1 += REG * W1
+            
+            #accumulate gradients
+            adW1 += dW1 
+            adB1 += dB1
+            adW2 += dW2
+            adB2 += dB2
 
-            W1 += -(STEP_SIZE * dW1)
-            B1 += -(STEP_SIZE * dB1)
-            W2 += -(STEP_SIZE * dW2)
-            B2 += -(STEP_SIZE * dB2)
+            #once a batch is finished average the gradients, apply the changes and then empty the accumulator 
+            if i%BATCH_SIZE == 0 and i != 0:
+                # print("Batch size reached at i = {}".format(i))
+                adW1 /= BATCH_SIZE 
+                adB1 /= BATCH_SIZE
+                adW2 /= BATCH_SIZE
+                adB2 /= BATCH_SIZE
+                W1 += -(STEP_SIZE * adW1)
+                B1 += -(STEP_SIZE * adB1)
+                W2 += -(STEP_SIZE * adW2)
+                B2 += -(STEP_SIZE * adB2)
+                adW1.fill(0) 
+                adB1.fill(0)
+                adW2.fill(0)
+                adB2.fill(0)
+            # print(i)
+
     print()
     print("I got {} correct. This is {} accuracy".format(correct, correct/(N*EPOCHS)))
     trained_NN = np.array([W1.flatten(),B1.flatten(),W2.flatten(),B2.flatten()], dtype = object)

@@ -10,13 +10,13 @@ def main():
     (train_data, train_labels), (test_data, test_labels) = mnist.load_data()
     trained_weights = np.load('TNN', allow_pickle=True)
 
-    W1 = trained_weights[0].reshape(10,784)
-    B1 = trained_weights[1].reshape(10,)
-    W2 = trained_weights[2].reshape(10,10)
+    W1 = trained_weights[0].reshape(75,784)
+    B1 = trained_weights[1].reshape(75,)
+    W2 = trained_weights[2].reshape(10,75)
     B2 = trained_weights[3].reshape(10,)
 
     # test(W1, B1, W2, B2, test_data, test_labels)
-    myNumTest(W1, B1, W2, B2, "Numbers/4_2.png", 4)
+    myNumTest(W1, B1, W2, B2, "Numbers/6_2.png", 4)
 
 def myNumTest(W1, B1, W2, B2, image, label):
     an_image = PIL.Image.open(image)
