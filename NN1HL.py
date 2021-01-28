@@ -14,19 +14,22 @@ def main():
     
 def train(data, labels):
     N = len(data) 
-    EPOCHS = 200
+    EPOCHS = 500
     BATCH_SIZE = 15
     HL_NODES = 75
     PIXELS = 784
     DIGITS = 10
     REG = 1e-3
     STEP_SIZE = .001
+    DROPOUT = True
     images = np.asarray(data)
     flat_images = np.empty((N,PIXELS))
     for i, image in enumerate(images):
         flat_images[i] = images[i].flatten()
         flat_images[i].reshape(784,1)
         flat_images[i] = flat_images[i] / 255
+    drop_p = 0.5
+    
     W1 = 0.01 * np.random.randn(HL_NODES,PIXELS)
     B1 = np.zeros(HL_NODES)
     W2 = 0.01 * np.random.randn(DIGITS,HL_NODES)
@@ -39,6 +42,9 @@ def train(data, labels):
         adB2 = np.zeros(DIGITS)
         for i in range(N):
             HL = np.maximum(0, W1.dot(flat_images[i])+B1)
+            if DROPOUT:
+                MHL = (np.random.rand(*HL.shape) < drop_p) / drop_p
+                HL *= MHL
             SCORE = W2.dot(HL) + B2
 
             #Loss Calculation

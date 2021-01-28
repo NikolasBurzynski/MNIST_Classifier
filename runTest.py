@@ -15,7 +15,7 @@ def main():
     W2 = trained_weights[2].reshape(10,75)
     B2 = trained_weights[3].reshape(10,)
 
-    # test(W1, B1, W2, B2, test_data, test_labels)
+    #test(W1, B1, W2, B2, test_data, test_labels)
     myNumTest(W1, B1, W2, B2, "Numbers/6_2.png", 4)
 
 def myNumTest(W1, B1, W2, B2, image, label):
