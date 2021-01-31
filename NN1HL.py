@@ -1,33 +1,22 @@
 import numpy as np
-import tensorflow as tf
 import time
-from keras.datasets import mnist
 
 def main():
-    (train_data, train_labels), (test_data, test_labels) = mnist.load_data()
     start_time = time.time()
-    train(train_data, train_labels)
+    train_data = np.load('DATA', allow_pickle=True)
+    train_labels = np.load('LABELS', allow_pickle=True)
+    train(train_data, train_labels, EPOCHS=500, DROPOUT=True)
     print("--- %s seconds ---" % (time.time() - start_time))
 
-
-
     
-def train(data, labels):
-    N = len(data) 
-    EPOCHS = 500
+def train(data, labels, EPOCHS, DROPOUT):
     BATCH_SIZE = 15
     HL_NODES = 75
     PIXELS = 784
     DIGITS = 10
     REG = 1e-3
     STEP_SIZE = .001
-    DROPOUT = True
-    images = np.asarray(data)
-    flat_images = np.empty((N,PIXELS))
-    for i, image in enumerate(images):
-        flat_images[i] = images[i].flatten()
-        flat_images[i].reshape(784,1)
-        flat_images[i] = flat_images[i] / 255
+    N = len(data)
     drop_p = 0.5
     
     W1 = 0.01 * np.random.randn(HL_NODES,PIXELS)
@@ -41,7 +30,7 @@ def train(data, labels):
         adW2 = np.zeros((DIGITS, HL_NODES))
         adB2 = np.zeros(DIGITS)
         for i in range(N):
-            HL = np.maximum(0, W1.dot(flat_images[i])+B1)
+            HL = np.maximum(0, W1.dot(data[i])+B1)
             if DROPOUT:
                 MHL = (np.random.rand(*HL.shape) < drop_p) / drop_p
                 HL *= MHL
@@ -77,7 +66,7 @@ def train(data, labels):
             #relu activation backprop
             dHL[HL <= 0] = 0
 
-            dW1 = np.outer(dHL, flat_images[i])
+            dW1 = np.outer(dHL, data[i])
             dB1 = np.sum(dHL, axis = 0, keepdims=True)
 
             dW2 += REG * W2
@@ -109,7 +98,10 @@ def train(data, labels):
     print()
     print("I got {} correct. This is {} accuracy".format(correct, correct/(N*EPOCHS)))
     trained_NN = np.array([W1.flatten(),B1.flatten(),W2.flatten(),B2.flatten()], dtype = object)
-    file = open("TNN", "wb")
+    file_name = 'TNN'
+    if(DROPOUT):
+        file_name = 'DTNN'        
+    file = open(file_name, "wb")
     np.save(file, trained_NN, allow_pickle=True)
     file.close
         
