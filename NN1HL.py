@@ -5,13 +5,13 @@ def main():
     start_time = time.time()
     train_data = np.load('DATA', allow_pickle=True)
     train_labels = np.load('LABELS', allow_pickle=True)
-    train(train_data, train_labels, EPOCHS=500, DROPOUT=True)
+    train(train_data, train_labels, EPOCHS=1, DROPOUT=True)
     print("--- %s seconds ---" % (time.time() - start_time))
 
     
 def train(data, labels, EPOCHS, DROPOUT):
-    BATCH_SIZE = 15
-    HL_NODES = 75
+    BATCH_SIZE = 34
+    HL_NODES = 50
     PIXELS = 784
     DIGITS = 10
     REG = 1e-3

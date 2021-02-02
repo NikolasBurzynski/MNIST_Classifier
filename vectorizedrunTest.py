@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 
 def main():
     (train_data, train_labels), (test_data, test_labels) = mnist.load_data()
-    trained_weights = np.load('DTNN', allow_pickle=True)
+    trained_weights = np.load('vectorizedDTNN', allow_pickle=True)
 
-    W1 = trained_weights[0].reshape(50,784)
-    B1 = trained_weights[1].reshape(50,)
-    W2 = trained_weights[2].reshape(10,50)
+    W1 = trained_weights[0].reshape(784,75)
+    B1 = trained_weights[1].reshape(75,)
+    W2 = trained_weights[2].reshape(75,10)
     B2 = trained_weights[3].reshape(10,)
 
     test(W1, B1, W2, B2, test_data, test_labels)
@@ -59,11 +59,11 @@ def test(W1, B1, W2, B2, test_data, test_labels):
     
 
     for i in range(N):
-        HL = np.maximum(0, W1.dot(flat_images[i])+B1)
+        HL = np.maximum(0, np.dot(flat_images[i],W1)+B1)
         # print("Size of Flat Image is {}".format(flat_images[i].shape))
         # print(flat_images[i])
         # print("HL size {}".format(HL.shape))
-        SCORE = W2.dot(HL) + B2
+        SCORE = np.dot(HL,W2) + B2
 
         exp_score = np.exp(SCORE)
         norm_score = exp_score / np.sum(exp_score)
@@ -75,7 +75,8 @@ def test(W1, B1, W2, B2, test_data, test_labels):
         
         # print("Correct Digit: {} Predicted Digit: {}".format(correct_digit, pred_digit))
         if(pred_digit == correct_digit):
-            correct += 1
+            correct += 1       
+    print(correct / N * 100)
 
 if __name__ == "__main__":
     main()

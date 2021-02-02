@@ -1,53 +1,88 @@
 import numpy as np
-
+import time
 def main():
-    PIXELS = 5
-    EPOCHS = 10
-    BATCH_SIZE = 5
-    NUM_IMAGES = 20
-    HL_NODES=50
+
+    start_time = time.time()
+    data = np.load('DATA', allow_pickle=True)
+    labels = np.load('LABELS', allow_pickle=True)
+    
+    #Hyperparams
+    PIXELS = len(data[0])
+    EPOCHS = 200
+    BATCH_SIZE = 17
+    NUM_IMAGES = len(data)
+    HL_NODES=75
     STEP_SIZE = .001
     REG = 1e-3
     DIGITS = 10
-    data = np.random.randn(NUM_IMAGES,PIXELS)
-    labels = np.random.randint(10, size = (NUM_IMAGES))
-    print(data)
-    W1 = .01 * np.random.randn(PIXELS,HL_NODES)
-    B1 = np.zeros((BATCH_SIZE, HL_NODES))
-    W2 = .01 * np.random.randn(HL_NODES,DIGITS)
-    B2 = np.zeros((BATCH_SIZE, DIGITS))
-    #I need to make a minibatch of the labels as well and pass those through
+    DROP_P = .5
+    DROPOUT = True
+
+    if NUM_IMAGES % BATCH_SIZE != 0:
+        print("Incompatible batch size, please change it")
+        exit()
+
+    
+    W1, B1, W2, B2 = initializeNN(PIXELS, HL_NODES, BATCH_SIZE, DIGITS)
+    dataSeen = 0
+    totalCorrect = 0
     for j in range(EPOCHS):
         for i in range(round(NUM_IMAGES / BATCH_SIZE)):
             mini_data = data[i*BATCH_SIZE:i*BATCH_SIZE+BATCH_SIZE]
             mini_labels = labels[i*BATCH_SIZE:i*BATCH_SIZE+BATCH_SIZE]
-            # print("MiniBatch {} is {}".format(i+1,mini_data))
-            dW1, dB1, dW2, dB2 = learn(mini_data, mini_labels, W1, B1, W2, B2, REG)
+            dW1, dB1, dW2, dB2, total_loss, numCorrect = learn(mini_data, mini_labels, W1, B1, W2, B2, REG, DROPOUT, BATCH_SIZE, DROP_P)
+            dataSeen += BATCH_SIZE
+            totalCorrect += numCorrect
             W1 += -(STEP_SIZE * dW1)
             B1 += -(STEP_SIZE * dB1)
             W2 += -(STEP_SIZE * dW2)
             B2 += -(STEP_SIZE * dB2)
+            print("EPOCH: {} BATCH NUM: {} CURRENT LOSS: {} Accuracy: {}%".format(j+1, i+1, total_loss, totalCorrect/dataSeen*100), end='\r')
 
-def learn(mini_data, mini_labels, W1, B1, W2, B2, REG):  
-    batch_size = mini_labels.size
-    HL = np.maximum(0, np.dot(mini_data,W1) + B1) #this is (60010X50) basically all of the images and 50 hidden nodes each
+    trained_NN = np.array([W1.flatten(),B1[0],W2.flatten(),B2[0]], dtype = object)
+    file_name = 'vectorizedTNN'
+    if(DROPOUT):
+        file_name = 'vectorizedDTNN'        
+    file = open(file_name, "wb")
+    np.save(file, trained_NN, allow_pickle=True)
+    file.close
+    print()
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+
+def initializeNN(PIXELS, HL_NODES, BATCH_SIZE, DIGITS):
+    W1 = .01 * np.random.randn(PIXELS,HL_NODES)
+    B1 = np.zeros((BATCH_SIZE, HL_NODES))
+    W2 = .01 * np.random.randn(HL_NODES,DIGITS)
+    B2 = np.zeros((BATCH_SIZE, DIGITS))
+    return W1, B1, W2, B2
+
+def learn(mini_data, mini_labels, W1, B1, W2, B2, REG, DROPOUT, batch_size, DROP_P):  
+    HL = np.maximum(0, np.dot(mini_data,W1) + B1) 
+
+    if DROPOUT:
+        MHL = (np.random.rand(*HL.shape) < DROP_P) / DROP_P
+        HL *= MHL
     scores = np.dot(HL, W2) + B2
+    
 
     #loss calc
     sum_exp_scores = np.exp(scores).sum(axis=1, keepdims=True)
-    softmax_matrix = np.exp(scores)/sum_exp_scores
-    data_loss = np.sum(-np.log(softmax_matrix[np.arange(batch_size), mini_labels]))/batch_size
+    norm_matrix = np.exp(scores)/sum_exp_scores
+    predicted_digits = norm_matrix.argmax(1)
+    numCorrect = np.sum(predicted_digits == mini_labels)
+
+    data_loss = np.sum(-np.log(norm_matrix[np.arange(batch_size), mini_labels]))/batch_size
     reg_loss = .5*REG*np.sum(W1*W1) + .5*REG*np.sum(W2*W2)
     total_loss = data_loss + reg_loss
-    print(total_loss)
 
     # Weight Gradient
-    softmax_matrix[np.arange(batch_size),mini_labels] -= 1
+    norm_matrix[np.arange(batch_size),mini_labels] -= 1
     
     # Backprop Baby
-    dW2 = np.dot(HL.T, softmax_matrix)
-    dB2 = np.sum(softmax_matrix, axis = 0, keepdims=True)
-    dHL = np.dot(softmax_matrix, W2.T)
+    dW2 = np.dot(HL.T, norm_matrix)
+    dB2 = np.sum(norm_matrix, axis = 0, keepdims=True)
+    dHL = np.dot(norm_matrix, W2.T)
 
     #RELU activation backprop
     dHL[HL <= 0] = 0
@@ -57,7 +92,8 @@ def learn(mini_data, mini_labels, W1, B1, W2, B2, REG):
 
     dW2 += REG * W2
     dW1 += REG * W1
-    return dW1, dB1, dW2, dB2 
+
+    return dW1, dB1, dW2, dB2, total_loss, numCorrect
 
 
 if __name__ == "__main__":
