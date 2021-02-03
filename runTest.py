@@ -8,42 +8,34 @@ import matplotlib.pyplot as plt
 
 def main():
     (train_data, train_labels), (test_data, test_labels) = mnist.load_data()
-    trained_weights = np.load('DTNN', allow_pickle=True)
-
-    W1 = trained_weights[0].reshape(50,784)
-    B1 = trained_weights[1].reshape(50,)
-    W2 = trained_weights[2].reshape(10,50)
+    trained_weights = np.load('HWONLYvectorizedDTNN', allow_pickle=True)
+    
+    W1 = trained_weights[0].reshape(784,75)
+    B1 = trained_weights[1].reshape(75,)
+    W2 = trained_weights[2].reshape(75,10)
     B2 = trained_weights[3].reshape(10,)
 
-    test(W1, B1, W2, B2, test_data, test_labels)
-    # myNumTest(W1, B1, W2, B2, "Numbers/6_2.png", 4)
+    # test(W1, B1, W2, B2, test_data, test_labels) YOU NEED TO VECTORIZE THIS
+    myNumTest(W1, B1, W2, B2)
 
-def myNumTest(W1, B1, W2, B2, image, label):
-    an_image = PIL.Image.open(image)
-
-    grayscale_image = an_image.convert("L")
-    grayscale_array = np.asarray(grayscale_image)
-    # print(grayscale_array)
-    plt.imshow(grayscale_array, cmap="gray")
-    
-
-    input_array = grayscale_array.flatten()
-    
-    input_array = input_array / 255
-    # print(input_array)
-     
-    HL = np.maximum(0, W1.dot(input_array)+B1)
+def myNumTest(W1, B1, W2, B2):
+    images = np.load('HWTestingData', allow_pickle=True)
+    labels = np.load('HWTestingLabels', allow_pickle=True)
+    correct = 0
+    N = len(labels)
+    for i in range(N): 
+        HL = np.maximum(0, np.dot(images[i],W1)+B1)
         
-    SCORE = W2.dot(HL) + B2
+        SCORE = np.dot(HL,W2) + B2
 
-    exp_score = np.exp(SCORE)
-    norm_score = exp_score / np.sum(exp_score)
-    correct_digit = label
-    correct_score = norm_score[correct_digit]
+        exp_score = np.exp(SCORE)
+        norm_score = exp_score / np.sum(exp_score)
+        correct_score = norm_score[labels[i]]
 
-    pred_digit = np.argmax(norm_score)
-    print("Your number is: {}".format(pred_digit))
-    plt.show()
+        pred_digit = np.argmax(norm_score)
+        if(pred_digit == labels[i]):
+            correct += 1
+    print("Accuracy: {}".format(correct/N))
 
 
 def test(W1, B1, W2, B2, test_data, test_labels):

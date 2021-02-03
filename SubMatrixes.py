@@ -3,13 +3,13 @@ import time
 def main():
 
     start_time = time.time()
-    data = np.load('DATA', allow_pickle=True)
-    labels = np.load('LABELS', allow_pickle=True)
+    data = np.load('HWDATA', allow_pickle=True)
+    labels = np.load('HWLABELS', allow_pickle=True)
     
     #Hyperparams
     PIXELS = len(data[0])
-    EPOCHS = 200
-    BATCH_SIZE = 17
+    EPOCHS = 750
+    BATCH_SIZE = 2
     NUM_IMAGES = len(data)
     HL_NODES=75
     STEP_SIZE = .001
@@ -26,6 +26,7 @@ def main():
     W1, B1, W2, B2 = initializeNN(PIXELS, HL_NODES, BATCH_SIZE, DIGITS)
     dataSeen = 0
     totalCorrect = 0
+    
     for j in range(EPOCHS):
         for i in range(round(NUM_IMAGES / BATCH_SIZE)):
             mini_data = data[i*BATCH_SIZE:i*BATCH_SIZE+BATCH_SIZE]
@@ -42,7 +43,7 @@ def main():
     trained_NN = np.array([W1.flatten(),B1[0],W2.flatten(),B2[0]], dtype = object)
     file_name = 'vectorizedTNN'
     if(DROPOUT):
-        file_name = 'vectorizedDTNN'        
+        file_name = 'HWONLYvectorizedDTNN'        
     file = open(file_name, "wb")
     np.save(file, trained_NN, allow_pickle=True)
     file.close
@@ -59,29 +60,28 @@ def initializeNN(PIXELS, HL_NODES, BATCH_SIZE, DIGITS):
 
 def learn(mini_data, mini_labels, W1, B1, W2, B2, REG, DROPOUT, batch_size, DROP_P):  
     HL = np.maximum(0, np.dot(mini_data,W1) + B1) 
-
+    #Dropout
     if DROPOUT:
         MHL = (np.random.rand(*HL.shape) < DROP_P) / DROP_P
         HL *= MHL
     scores = np.dot(HL, W2) + B2
-    
 
     #loss calc
     sum_exp_scores = np.exp(scores).sum(axis=1, keepdims=True)
     norm_matrix = np.exp(scores)/sum_exp_scores
     predicted_digits = norm_matrix.argmax(1)
     numCorrect = np.sum(predicted_digits == mini_labels)
-
     data_loss = np.sum(-np.log(norm_matrix[np.arange(batch_size), mini_labels]))/batch_size
     reg_loss = .5*REG*np.sum(W1*W1) + .5*REG*np.sum(W2*W2)
     total_loss = data_loss + reg_loss
 
-    # Weight Gradient
+    # Back prop softmax 
     norm_matrix[np.arange(batch_size),mini_labels] -= 1
     
-    # Backprop Baby
+    
     dW2 = np.dot(HL.T, norm_matrix)
     dB2 = np.sum(norm_matrix, axis = 0, keepdims=True)
+
     dHL = np.dot(norm_matrix, W2.T)
 
     #RELU activation backprop
